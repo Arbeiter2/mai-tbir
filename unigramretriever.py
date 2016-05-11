@@ -43,14 +43,15 @@ class UnigramRetriever(TextRetriever):
 					if tokenProb > 0.0:
 						total = total + math.log10(tokenProb)
 
-				best_matches.append({ 'docID' : docID, 'logProb' : total,
+				best_matches.append({ 'docID' : docID, 'dist' : total,
 					'model' : m })
 
 		# sort best_matches by logProb
-		MLE = sorted(best_matches, key=itemgetter('logProb'), reverse=True)
+		MLE = sorted(best_matches, key=itemgetter('dist'), reverse=True)
 
 		# return docIDs of top N entries
-		return [x['docID'] for x in MLE[:topN]]
+		#return [x['docID'] for x in MLE[:topN]]
+		return MLE[:topN]
 
 	# get the probability of token in given model
 	def getDocProb(self, model, token):

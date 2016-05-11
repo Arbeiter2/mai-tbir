@@ -87,10 +87,34 @@ class TextRetriever:
 
 	# read in file of queries, and run each query against already loaded documents
 	# input file has format 
+	# <sentenceID>\t<sentence>
+	def process_query_file(self, queryFile, topN=1000):
+		assert self.docsLoaded
+
+		self.results = []
+		test = open(queryFile, "r")
+		for line in test:
+			line = line.strip()
+			if len(line) == 0 or '\t' not in line:
+				continue
+			(query_id, query) = line.split('\t')
+
+			if not re.match('^\d+$', query_id):
+				continue
+
+			prediction = self.run_query(query, topN)
+			print("query {}: {}".format(query_id, len(prediction)))
+			self.results.append({ "query_id" : query_id, "prediction": prediction })
+		test.close()
+
+		return self.results
+
+	# read in file of queries, and run each query against already loaded documents
+	# input file has format 
 	# <sentenceID>\t<docID>\t<sentence>
 	# builds self.groundTruth as a list of lists, with the following structure
 	# self.groundTruth = [docID] * number of occurences
-	def process_query_file(self, queryFile, topN=1000):
+	def process_test_file(self, queryFile, topN=1000):
 		assert self.docsLoaded
 
 		self.results = []
@@ -127,6 +151,13 @@ class TextRetriever:
 
 	def getPredictions(self):
 		return self.results
+
+	def writeResults(self, fileHandle):
+		# query_id  iteration  document_number rank  similarity_value   run_id 
+		for r in self.results:
+			for p in r['prediction']:
+				fileHandle.write(" 0 ".join([r['query_id'], p['docID'],
+				str(p['dist']), ""]) + "\n")
 
 	
 	def getInterpolatedPrecisionRecall(self):

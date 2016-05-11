@@ -27,6 +27,8 @@ class GloVecRetriever(VectorRetriever):
 			self.vectors = self.vectors.append(chunk)
 		self.vocab = self.vectors.index.values
 
+		print("Vector file loaded")
+
 	# override of getVec
 	def getVec(self, word):
 		return self.vectors.loc[word]

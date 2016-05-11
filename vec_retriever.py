@@ -88,6 +88,7 @@ class VectorRetriever(TextRetriever):
 						m['vector'] += self.getVec(w) * m['tf'][w] * self.idf[w]
 					#m['vector'] = v/len(m['tf'])
 				#m['vector'] =  m['vector']/LA.norm(v)
+		print("Document loaded")
 
 
 	# return vector representation of word
@@ -136,7 +137,8 @@ class VectorRetriever(TextRetriever):
 		MLE = sorted(best_matches, key=itemgetter('dist'), reverse=True)
 
 		# return docIDs of top N entries
-		return [x['docID'] for x in MLE[:topN]]
+		#return [x['docID'] for x in MLE[:topN]]
+		return MLE[:topN]
 
 
 	# find cosine distance between two vectors

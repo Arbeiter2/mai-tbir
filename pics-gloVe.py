@@ -4,6 +4,7 @@ from glove_retriever import GloVecRetriever
 
 def usage():
 	print ("Usage: {} -v/--vector-length=[50|100|200|300]\n"
+		"\t[-q/--query-file]\n"
 		"\t[-s/--keep-stopwords (keep stopwords)]\n"
 		"\t[-f/--vector-file (vector file)]\n"
 		"\t[-t/--tf-idf (use TF-IDF weighting)]".format(sys.argv[0]))
@@ -13,10 +14,11 @@ def processArgs():
 	useTfIdf = False
 	vecLength = 0
 	vectorFile = None
+	queryFile = "data_4stdpt/queries_val"
 
 	try:
-		opts, args = getopt.getopt(sys.argv[1:], "v:f:sth",
-			["vector-length=", "vector-file=", "keep-stopwords", "tf-idf", "help"])
+		opts, args = getopt.getopt(sys.argv[1:], "v:f:q:sth",
+			["vector-length=", "vector-file=", "query-file", "keep-stopwords", "tf-idf", "help"])
 	except getopt.GetoptError as err:
 		print(err)
 		usage()
@@ -35,6 +37,12 @@ def processArgs():
 			vecLength = a
 		elif o in ("-s", "--remove-stopwords"):
 			removeStopWords = True
+		elif o in ("-q", "--query-file"):
+			if not os.path.isfile(a):
+				print("Invalid query file [{}]".format(a))
+				usage()
+				sys.exit(1)
+			queryFile = a
 		elif o in ("-f", "--vector-file"):
 			if not os.path.isfile(a):
 				print("Invalid gloVec vector file [{}]".format(a))
@@ -50,7 +58,7 @@ def processArgs():
 		usage()
 		sys.exit(1)
 
-	return { "vecLength" : vecLength, "useTfIdf" : useTfIdf,
+	return { "vecLength" : vecLength, "useTfIdf" : useTfIdf, "queryFile" : queryFile,
 		"removeStopWords" : removeStopWords, "vectorFile" : vectorFile }
 
 args = processArgs()
@@ -59,7 +67,13 @@ retriever = GloVecRetriever(args['removeStopWords'], args['vecLength'],
 retriever.loadStopWords("stopwords_en.txt")
 retriever.loadVectors()
 retriever.build_documents("data_4stdpt/target_collection")
-actual, results = retriever.process_query_file("data_4stdpt/queries_val")
+results = retriever.process_query_file(args['queryFile'])
+
+resHandler = open("pics-glovec-{}-res.txt".format(retriever.getVectorLength()), "w")
+retriever.writeResults(resHandler)
+resHandler.close()
+
+sys.exit(0)
 
 map1000 = retriever.mapk()
 recall, precision = retriever.getInterpolatedPrecisionRecall()
